@@ -8,6 +8,12 @@ Description: Runs the game
 class Main {
     // the main method which is run
     public static void main(String[] args) {
-        new GameFrame(); // creates a new game frame
+        int width = 1280;
+        int height = 720;
+        if (args.length == 2){
+            width = Integer.parseInt(args[0]);
+            height = Integer.parseInt(args[1]);
+        }
+        new GameFrame(width, height); // creates a new game frame
     }
 }

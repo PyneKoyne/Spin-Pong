@@ -12,7 +12,7 @@ public class Paddle extends Rectangle{
 
     public boolean moveUp, moveDown; // variables to keep track of where the paddle is moving
     public double yVelocity, yAccel, yPos; // controls the y movement
-    public final double SPEED = 14; //movement speed of paddle
+    public final double SPEED = 13; //movement speed of paddle
     public final Rectangle[] colliders = new Rectangle[2]; // 2 colliders
     public int offsetX; // the x offset of one of the colliders
     public int upKey, downKey; // which keys are up and down

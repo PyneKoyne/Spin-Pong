@@ -15,8 +15,8 @@ import javax.swing.*;
 public class GamePanel extends JPanel implements Runnable, KeyListener{
 
     //dimensions of window
-    public static final int GAME_WIDTH = 1280;
-    public static final int GAME_HEIGHT = 720;
+    public final int GAME_WIDTH;
+    public final int GAME_HEIGHT;
     public Thread gameThread; // thread to control the game
     public BufferedImage image; // the image which the pong game is rendered on
     public BufferedImage postProd; // post render logic for animations
@@ -30,11 +30,16 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     public int winner; // the winner of the last match if any
 
     // constructor
-    public GamePanel(){
+    public GamePanel(int width, int height){
+        GAME_WIDTH = width;
+        GAME_HEIGHT = height;
+
+        int diameter = GAME_HEIGHT/144 + 15;
+
         // instantiates our variables
         paddle1 = new Paddle(GAME_WIDTH/64, 5 * GAME_HEIGHT/12, GAME_WIDTH/64, GAME_HEIGHT/6, KeyEvent.VK_W, KeyEvent.VK_S); //create a player controlled ball, set start location to middle of screen
         paddle2 = new Paddle(31 * GAME_WIDTH/32, 5 * GAME_HEIGHT/12, GAME_WIDTH/64, GAME_HEIGHT/6, KeyEvent.VK_UP, KeyEvent.VK_DOWN); //create a player controlled ball, set start location to middle of screen
-        ball = new PlayerBall(GAME_WIDTH * 59 / 64 - PlayerBall.BALL_DIAMETER - 6, GAME_HEIGHT/2 + 8);
+        ball = new PlayerBall(GAME_WIDTH * 59 / 64 - diameter - 6 * (GAME_HEIGHT/720), GAME_HEIGHT/2 + 8, diameter);
 
         GraphicsConfiguration CONFIG = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         image = CONFIG.createCompatibleImage(GAME_WIDTH, GAME_HEIGHT); //draw off screen
@@ -68,7 +73,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
 
             // sets colour and font
             graphics.setColor(new Color((int) (100 * (255 * (1 - animationProgress)/100)), (int) (100 * (255 * (1 - animationProgress)/100)), (int) (100 * (255 * (1 - animationProgress)/100))));
-            graphics.setFont(new Font("Fairfax", Font.PLAIN, 45));
+            graphics.setFont(new Font("Fairfax", Font.PLAIN, 25 * (GAME_HEIGHT/720) + 20));
             fm = graphics.getFontMetrics();
 
             // draws the PONG logo on either the right or left side depending on the winner
@@ -188,11 +193,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
             ball.y = GAME_WIDTH/70;
             ball.reflect(null);
         }
-        else if(ball.y > GAME_HEIGHT - PlayerBall.BALL_DIAMETER - GAME_WIDTH/70){ // check if the ball collides with the floor
-            ball.y = GAME_HEIGHT - PlayerBall.BALL_DIAMETER - GAME_WIDTH/70;
+        else if(ball.y > GAME_HEIGHT - ball.BALL_DIAMETER - GAME_WIDTH/70){ // check if the ball collides with the floor
+            ball.y = GAME_HEIGHT - ball.BALL_DIAMETER - GAME_WIDTH/70;
             ball.reflect(null);
         }
-        else if (ball.x < -PlayerBall.BALL_DIAMETER){ // check if the ball hits the left wall
+        else if (ball.x < -ball.BALL_DIAMETER){ // check if the ball hits the left wall
             ball.resetPoint(GAME_WIDTH/2, GAME_HEIGHT/2, true); // resets the point
             score2 += 1;
             if (score2 >= 5){ // resets game if the score is greater than 5
@@ -237,14 +242,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         paddle2.moveDown = false;
 
         // resets the ball depending on which side won for the animation
-        if (winner == 0 || winner == 2) ball.resetPosition(GAME_WIDTH * 59 / 64 - PlayerBall.BALL_DIAMETER - 6, GAME_HEIGHT/2 + PlayerBall.BALL_DIAMETER - 13);
-        else ball.resetPosition(GAME_WIDTH * 5 / 64 + PlayerBall.BALL_DIAMETER - 15, GAME_HEIGHT/2 - PlayerBall.BALL_DIAMETER - 8);
+        if (winner == 0 || winner == 2) ball.resetPosition(GAME_WIDTH * 59 / 64 - ball.BALL_DIAMETER - 6, GAME_HEIGHT/2 + ball.BALL_DIAMETER - 13);
+        else ball.resetPosition(GAME_WIDTH * 5 / 64 + ball.BALL_DIAMETER - 15, GAME_HEIGHT/2 - ball.BALL_DIAMETER - 8);
     }
 
     // method which checks if the ball collides with a right collider of a paddle
     public boolean checkRightBounce(Rectangle collider, Paddle paddle){
         if (collider.intersects(ball)) {
-            ball.x = paddle.x + paddle.width + PlayerBall.BALL_DIAMETER;
+            ball.x = paddle.x + paddle.width + ball.BALL_DIAMETER;
             ball.reflect((int) paddle.yVelocity); // reflects the ball
             animationProgress = -1; // sets animationProgress to -1 if it wasn't already to remove instructions
             return true;
@@ -255,7 +260,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     // method which checks if the ball collides with a left collider of a paddle
     public boolean checkLeftBounce(Rectangle collider, Paddle paddle){
         if (collider.intersects(ball)) {
-            ball.x = paddle.x - PlayerBall.BALL_DIAMETER;
+            ball.x = paddle.x - ball.BALL_DIAMETER;
             ball.reflect((int) paddle.yVelocity); // reflects the ball
             animationProgress = -1; // sets animationProgress to -1 if it wasn't already to remove instructions
             return true;
@@ -267,7 +272,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     public void run(){
         // set up time controls
         long lastTime = System.nanoTime();
-        double amountOfTicks = 60;
+        double amountOfTicks = 70;
         double ns = 1000000000/amountOfTicks;
         double delta = 0;
         long now;
@@ -283,7 +288,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                 // code to make the display look pretty when there is no active game
                 if(!inGame){
                     if (animationProgress != 1){
-                        animationProgress *= 1.055;
+                        animationProgress *= 1.05;
                         if(animationProgress > 1){
                             animationProgress = 1;
                         }

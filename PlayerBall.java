@@ -14,11 +14,12 @@ public class PlayerBall extends Rectangle{
     public double yAccel, yVelocity; // controls y movement
     public double theta, alpha, spin; // controls the spin of the ball
     public double xVelocity; // controls x movement
-    public static final int BALL_DIAMETER = 20; //size of ball
+    public final int BALL_DIAMETER; //size of ball
 
     //constructor creates ball at given location with given dimensions
-    public PlayerBall(int x, int y){
-        super(x, y, BALL_DIAMETER, BALL_DIAMETER);
+    public PlayerBall(int x, int y, int diameter){
+        super(x, y, diameter, diameter);
+        this.BALL_DIAMETER = diameter;
 
         this.theta = 0;
         this.alpha = 0;
@@ -47,7 +48,7 @@ public class PlayerBall extends Rectangle{
             double randSign = Math.random() - 0.5;
 
             // y direction stays the same, and acceleration is slightly altered
-            this.setYAccel((direction + (randSign / Math.abs(randSign)) * ((Math.random()/2 + 2.5)/(Math.abs(this.yVelocity/2) + 1.5))) / 2);
+            this.setYAccel((direction + (randSign / Math.abs(randSign)) * ((Math.random()/2 + 2)/(Math.abs(this.yVelocity/2) + 1.5))) / 2);
             this.setYDirection(this.yVelocity);
 
             // spin is given
@@ -63,7 +64,7 @@ public class PlayerBall extends Rectangle{
     public void resetPoint(int x, int y, boolean winner){
         this.x = x;
         this.y = y;
-        this.setXDirection(winner ? (int) (Math.random() * 3 + 7) : (int) -(Math.random() * 5 + 8));
+        this.setXDirection(winner ? (Math.random() * 2.5 + 7) : -(Math.random() * 2.5 + 7));
         this.setYDirection(Math.random() * 5 - 2.5);
     }
 
@@ -88,7 +89,7 @@ public class PlayerBall extends Rectangle{
         y = (int) (y + yVelocity);
         x = (int) (x + xVelocity);
 
-        xVelocity *= 1.0005; // ball slowly speeds up
+        xVelocity *= 1.0003; // ball slowly speeds up
         yVelocity += (yAccel + spin/18)/4; // y velocity is affected by acceleration
 
         // spin and acceleration deteriorate
@@ -127,13 +128,25 @@ public class PlayerBall extends Rectangle{
         // if the point is in front of the tangent line, the point is rendered
         if (dotY >= BALL_DIAMETER * BALL_DIAMETER / focalLength) {
             // finds the angle of the point to the camera
-            double angle = Math.acos((focalLength - dotY) /
-                    Math.sqrt(Math.pow(focalLength - dotY, 2) + Math.pow(dotX, 2) + Math.pow(dotZ, 2)));
+            double angle = Math.acos((focalLength - dotY) *
+                    (invSquare(Math.pow(focalLength - dotY, 2) + Math.pow(dotX, 2) + Math.pow(dotZ, 2)) +
+                            0.00012 - (BALL_DIAMETER / 18500.0 - 0.001082)));
             // finds the length of the arc to the point
             double arcLength = radius * (angle / Math.PI);
             // magnitude of the 2D vector of the point of the sphere projected as a circle
-            double mag = Math.sqrt(dotX * dotX + dotZ * dotZ);
-            g.fillRect((int) (x + BALL_DIAMETER/2 + (dotX / mag) * arcLength), (int) (y + BALL_DIAMETER/2 +(dotZ / mag) * arcLength), 2, 2); //draws the point on screen
+            double invMag = invSquare(dotX * dotX + dotZ * dotZ);
+            g.fillRect((int) Math.round(x + BALL_DIAMETER/2.0 + (dotX * invMag) * arcLength), (int) Math.round(y + BALL_DIAMETER/2.0 + (dotZ * invMag) * arcLength), 2, 2); //draws the point on screen
         }
+    }
+
+    // Fast Quack3 Inverse Square Algorithm
+    public double invSquare(double square){
+        double half = 0.5d * square;
+        long i = java.lang.Double.doubleToLongBits(square);
+        i = 0x5fe6ec85e7de30daL - (i >> 1);
+        square = java.lang.Double.longBitsToDouble(i);
+        square *= (1.5d - half * square * square);
+
+        return square;
     }
 }
